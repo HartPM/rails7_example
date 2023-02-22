@@ -1,24 +1,42 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+* Ruby v2.7.4
+* Rails v7.0.4
 
-Things you may want to cover:
+```
+$ rails new example-project -T -d=postgresql --api
 
-* Ruby version
+$ rails db:create
 
-* System dependencies
+$ bundle add active_model_serializers
 
-* Configuration
+uncomment < gem 'bcrypt', '~> 3.1.7' > in Gemfile
 
-* Database creation
+$ bundle lock --add-platform x86_64-linux
 
-* Database initialization
+Add the following to config/application.rb
+    # Adding back cookies and session middleware
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore
 
-* How to run the test suite
+    # Use SameSite=Strict for all cookies to help protect against CSRF
+    config.action_dispatch.cookies_same_site_protection = :strict
 
-* Services (job queues, cache servers, search engines, etc.)
+* app/controllers/application_controller.rb
+    class ApplicationController < ActionController::API
+    include ActionController::Cookies
 
-* Deployment instructions
+    def hello_world
+        session[:count] = (session[:count] || 0) + 1
+        render json: { count: session[:count] }
+    end
+    end
 
-* ...
+* config/routes.rb
+    Rails.application.routes.draw do
+    # route to test your configuration
+    get '/hello', to: 'application#hello_world'
+    end
+
+$ rails s
+```
